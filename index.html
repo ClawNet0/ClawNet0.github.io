@@ -1,0 +1,1468 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClawNet — Identity &middot; Authorization &middot; Accountability</title>
+<meta name="description" content="ClawNet: The Human-Agent Symbiosis Network by HKGAI. Identity, Authorization, Accountability for AI agents.">
+<link rel="icon" type="image/png" href="assets/clawnet-1024.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ===== RESET & BASE ===== */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg-base: #0a0a0f;
+  --bg-surface: #12121a;
+  --bg-card: #16161f;
+  --bg-card-hover: #1c1c28;
+  --cyan: #00e5ff;
+  --cyan-dim: #00e5ff33;
+  --cyan-glow: #00e5ff80;
+  --amber: #ffb300;
+  --amber-dim: #ffb30033;
+  --amber-glow: #ffb30060;
+  --red: #ff3d3d;
+  --red-dim: #ff3d3d33;
+  --red-glow: #ff3d3d60;
+  --text-primary: #e8eaf0;
+  --text-secondary: #8a8fa8;
+  --text-dim: #555a70;
+  --border: #1e2035;
+  --font-display: 'Orbitron', sans-serif;
+  --font-body: 'Inter', 'Noto Sans TC', sans-serif;
+  --font-chinese: 'Noto Sans TC', 'Inter', sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* ===== CANVAS / PARTICLE BG ===== */
+#particle-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-base); }
+::-webkit-scrollbar-thumb { background: var(--cyan-dim); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--cyan); }
+
+/* ===== NAV ===== */
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  padding: 16px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(10, 10, 15, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  transition: background 0.3s ease;
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+}
+
+.nav-logo img {
+  height: 36px;
+  width: auto;
+}
+
+.nav-logo span {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.nav-links {
+  display: flex;
+  gap: 28px;
+  list-style: none;
+}
+
+.nav-links a {
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+  cursor: pointer;
+}
+
+.nav-links a:hover,
+.nav-links a:focus-visible { color: var(--cyan); }
+
+.nav-mobile-toggle {
+  display: none;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  padding: 8px 12px;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 1.2rem;
+}
+
+/* ===== SECTIONS COMMON ===== */
+section {
+  position: relative;
+  z-index: 1;
+  padding: 120px 32px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.section-label {
+  font-family: var(--font-display);
+  font-size: 0.65rem;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--cyan);
+  margin-bottom: 12px;
+  display: block;
+}
+
+.section-title {
+  font-family: var(--font-chinese);
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  font-weight: 700;
+  line-height: 1.3;
+  margin-bottom: 8px;
+}
+
+.section-subtitle {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin-bottom: 48px;
+  max-width: 600px;
+}
+
+/* ===== REVEAL ANIMATION ===== */
+.reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+.reveal-delay-4 { transition-delay: 0.4s; }
+.reveal-delay-5 { transition-delay: 0.5s; }
+.reveal-delay-6 { transition-delay: 0.6s; }
+
+/* ===== HERO ===== */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding-top: 80px;
+}
+
+.hero-logo {
+  width: clamp(160px, 25vw, 280px);
+  height: auto;
+  margin-bottom: 32px;
+  filter: drop-shadow(0 0 40px var(--cyan-dim)) drop-shadow(0 0 80px rgba(0, 229, 255, 0.1));
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+
+.hero h1 {
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 8vw, 6rem);
+  font-weight: 900;
+  letter-spacing: 8px;
+  background: linear-gradient(135deg, var(--cyan), #fff, var(--amber));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 24px;
+}
+
+.hero-tagline {
+  font-family: var(--font-chinese);
+  font-size: clamp(1.1rem, 2.5vw, 1.6rem);
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+  letter-spacing: 2px;
+}
+
+.hero-tagline-en {
+  font-family: var(--font-display);
+  font-size: clamp(0.7rem, 1.2vw, 0.85rem);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 40px;
+}
+
+.hero-quote {
+  font-family: var(--font-chinese);
+  font-size: 1rem;
+  color: var(--amber);
+  opacity: 0.8;
+  max-width: 500px;
+  line-height: 1.8;
+  padding: 16px 24px;
+  border: 1px solid var(--amber-dim);
+  border-radius: 8px;
+  background: rgba(255, 179, 0, 0.04);
+}
+
+.hero-scroll-hint {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-dim);
+  font-size: 0.7rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-family: var(--font-display);
+  animation: pulse-down 2s ease-in-out infinite;
+}
+
+.hero-scroll-hint svg {
+  width: 20px;
+  height: 20px;
+  stroke: var(--text-dim);
+}
+
+@keyframes pulse-down {
+  0%, 100% { opacity: 0.4; transform: translateX(-50%) translateY(0); }
+  50% { opacity: 0.8; transform: translateX(-50%) translateY(6px); }
+}
+
+/* ===== PROBLEM SECTION ===== */
+.problem-header {
+  text-align: center;
+  margin-bottom: 64px;
+}
+
+.problem-header .big-quote {
+  font-family: var(--font-chinese);
+  font-size: clamp(1.4rem, 3vw, 2.2rem);
+  font-weight: 700;
+  line-height: 1.5;
+  max-width: 700px;
+  margin: 0 auto 16px;
+}
+
+.problem-header .big-quote-en {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.problem-comparison {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
+.problem-side {
+  padding: 32px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+}
+
+.problem-side.before {
+  border-color: var(--red-dim);
+}
+
+.problem-side.after {
+  border-color: var(--cyan-dim);
+}
+
+.problem-side-label {
+  font-family: var(--font-display);
+  font-size: 0.65rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.problem-side.before .problem-side-label { color: var(--red); }
+.problem-side.after .problem-side-label { color: var(--cyan); }
+
+.problem-item {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+  align-items: flex-start;
+}
+
+.problem-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 1.1rem;
+}
+
+.problem-side.before .problem-icon {
+  background: var(--red-dim);
+  color: var(--red);
+}
+
+.problem-side.after .problem-icon {
+  background: var(--cyan-dim);
+  color: var(--cyan);
+}
+
+.problem-item h4 {
+  font-family: var(--font-chinese);
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.problem-item p {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.problem-vs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+}
+
+.problem-vs span {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--amber);
+  background: var(--bg-surface);
+  border: 1px solid var(--amber-dim);
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ===== EVOLUTION TIMELINE ===== */
+.timeline-container {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  margin-top: 48px;
+}
+
+.timeline-line {
+  position: absolute;
+  top: 38px;
+  left: 10%;
+  right: 10%;
+  height: 2px;
+  background: linear-gradient(90deg, var(--text-dim), var(--cyan-dim), var(--cyan));
+  z-index: 0;
+}
+
+.timeline-card {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 24px 16px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  transition: border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: default;
+}
+
+.timeline-card:hover {
+  transform: translateY(-4px);
+}
+
+.timeline-card.active {
+  border-color: var(--cyan);
+  box-shadow: 0 0 40px var(--cyan-dim), inset 0 0 40px rgba(0, 229, 255, 0.03);
+}
+
+.timeline-card.active:hover {
+  box-shadow: 0 0 60px var(--cyan-dim), inset 0 0 40px rgba(0, 229, 255, 0.05);
+}
+
+.timeline-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  border: 2px solid var(--text-dim);
+  margin: 0 auto 20px;
+}
+
+.timeline-card.active .timeline-dot {
+  border-color: var(--cyan);
+  background: var(--cyan);
+  box-shadow: 0 0 16px var(--cyan-glow);
+}
+
+.timeline-gen {
+  font-family: var(--font-display);
+  font-size: 0.6rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+}
+
+.timeline-card.active .timeline-gen { color: var(--cyan); }
+
+.timeline-year {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+.timeline-card h4 {
+  font-family: var(--font-chinese);
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.timeline-card p {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.timeline-card.active h4 {
+  color: var(--cyan);
+}
+
+.timeline-badge {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 4px 12px;
+  font-family: var(--font-display);
+  font-size: 0.6rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--bg-base);
+  background: var(--cyan);
+  border-radius: 20px;
+}
+
+/* ===== THREE-LAYER ARCHITECTURE ===== */
+.layers-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-top: 48px;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.layer-card {
+  padding: 32px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  transition: border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: default;
+}
+
+.layer-card:hover {
+  transform: translateX(8px);
+}
+
+.layer-card:nth-child(1) { border-left: 3px solid var(--cyan); }
+.layer-card:nth-child(2) { border-left: 3px solid var(--amber); }
+.layer-card:nth-child(3) { border-left: 3px solid var(--red); }
+
+.layer-card:nth-child(1):hover { box-shadow: -4px 0 30px var(--cyan-dim); }
+.layer-card:nth-child(2):hover { box-shadow: -4px 0 30px var(--amber-dim); }
+.layer-card:nth-child(3):hover { box-shadow: -4px 0 30px var(--red-dim); }
+
+.layer-number {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  font-weight: 900;
+  line-height: 1;
+  flex-shrink: 0;
+  width: 60px;
+  text-align: center;
+}
+
+.layer-card:nth-child(1) .layer-number { color: var(--cyan); }
+.layer-card:nth-child(2) .layer-number { color: var(--amber); }
+.layer-card:nth-child(3) .layer-number { color: var(--red); }
+
+.layer-info h3 {
+  font-family: var(--font-chinese);
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.layer-info .layer-en {
+  font-family: var(--font-display);
+  font-size: 0.65rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+  display: block;
+}
+
+.layer-info p {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+/* ===== SCENARIO SHOWCASE ===== */
+.scenario-card {
+  padding: 48px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  margin-top: 48px;
+  position: relative;
+  overflow: hidden;
+}
+
+.scenario-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--cyan), var(--amber), var(--red));
+}
+
+.scenario-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 40px;
+  gap: 32px;
+}
+
+.scenario-quote {
+  max-width: 480px;
+}
+
+.scenario-quote blockquote {
+  font-family: var(--font-chinese);
+  font-size: 1.3rem;
+  font-weight: 500;
+  line-height: 1.6;
+  color: var(--amber);
+  padding-left: 20px;
+  border-left: 3px solid var(--amber);
+}
+
+.scenario-quote .scenario-speaker {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: 12px;
+  padding-left: 20px;
+}
+
+.scenario-punchline {
+  font-family: var(--font-chinese);
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  padding: 16px 20px;
+  border: 1px solid var(--amber-dim);
+  border-radius: 12px;
+  background: rgba(255, 179, 0, 0.04);
+  max-width: 320px;
+  line-height: 1.6;
+  flex-shrink: 0;
+}
+
+.scenario-flow {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  position: relative;
+}
+
+.scenario-flow::before {
+  content: '';
+  position: absolute;
+  top: 38px;
+  left: 8%;
+  right: 8%;
+  height: 2px;
+  background: linear-gradient(90deg, var(--cyan), var(--amber), var(--red));
+  opacity: 0.3;
+}
+
+.flow-step {
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+.flow-step-num {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 12px;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 700;
+  background: var(--bg-surface);
+  border: 2px solid var(--cyan-dim);
+  color: var(--cyan);
+  transition: all 0.3s ease;
+}
+
+.flow-step:hover .flow-step-num {
+  background: var(--cyan);
+  color: var(--bg-base);
+  box-shadow: 0 0 20px var(--cyan-dim);
+}
+
+.flow-step h5 {
+  font-family: var(--font-chinese);
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.flow-step p {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+/* ===== DEMO VIDEO ===== */
+.demo-section {
+  text-align: center;
+}
+
+.demo-frame {
+  position: relative;
+  max-width: 900px;
+  margin: 48px auto 0;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 2px solid var(--cyan-dim);
+  box-shadow: 0 0 60px var(--cyan-dim), 0 0 120px rgba(0, 229, 255, 0.05);
+  background: var(--bg-card);
+}
+
+.demo-frame::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 18px;
+  padding: 2px;
+  background: linear-gradient(135deg, var(--cyan), transparent, var(--amber));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.demo-label {
+  position: absolute;
+  top: 16px;
+  left: 20px;
+  z-index: 3;
+  font-family: var(--font-display);
+  font-size: 0.6rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--cyan);
+  background: rgba(10, 10, 15, 0.85);
+  padding: 6px 14px;
+  border-radius: 4px;
+  border: 1px solid var(--cyan-dim);
+  backdrop-filter: blur(8px);
+}
+
+.demo-frame video {
+  width: 100%;
+  display: block;
+  border-radius: 14px;
+}
+
+/* ===== NETWORK ECOSYSTEM ===== */
+.ecosystem-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  margin-top: 48px;
+}
+
+.eco-card {
+  padding: 32px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  transition: border-color 0.3s ease, transform 0.3s ease;
+  cursor: default;
+}
+
+.eco-card:hover {
+  transform: translateY(-4px);
+}
+
+.eco-card:nth-child(1) { border-top: 3px solid var(--cyan); }
+.eco-card:nth-child(2) { border-top: 3px solid var(--amber); }
+.eco-card:nth-child(3) { border-top: 3px solid var(--red); }
+.eco-card:nth-child(4) { border-top: 3px solid #a78bfa; }
+
+.eco-card:nth-child(1):hover { border-color: var(--cyan-dim); box-shadow: 0 8px 40px var(--cyan-dim); }
+.eco-card:nth-child(2):hover { border-color: var(--amber-dim); box-shadow: 0 8px 40px var(--amber-dim); }
+.eco-card:nth-child(3):hover { border-color: var(--red-dim); box-shadow: 0 8px 40px var(--red-dim); }
+.eco-card:nth-child(4):hover { border-color: #a78bfa33; box-shadow: 0 8px 40px #a78bfa20; }
+
+.eco-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.eco-card:nth-child(1) .eco-icon { background: var(--cyan-dim); color: var(--cyan); }
+.eco-card:nth-child(2) .eco-icon { background: var(--amber-dim); color: var(--amber); }
+.eco-card:nth-child(3) .eco-icon { background: var(--red-dim); color: var(--red); }
+.eco-card:nth-child(4) .eco-icon { background: #a78bfa20; color: #a78bfa; }
+
+.eco-card h3 {
+  font-family: var(--font-chinese);
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.eco-card .eco-en {
+  font-family: var(--font-display);
+  font-size: 0.6rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+  display: block;
+}
+
+.eco-card p {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.eco-stat {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 700;
+  margin-top: 16px;
+  display: block;
+}
+
+.eco-card:nth-child(1) .eco-stat { color: var(--cyan); }
+.eco-card:nth-child(2) .eco-stat { color: var(--amber); }
+.eco-card:nth-child(3) .eco-stat { color: var(--red); }
+.eco-card:nth-child(4) .eco-stat { color: #a78bfa; }
+
+/* ===== FOOTER ===== */
+.site-footer {
+  position: relative;
+  z-index: 1;
+  border-top: 1px solid var(--border);
+  padding: 48px 32px;
+  text-align: center;
+}
+
+.footer-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.footer-logo {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.footer-logo img {
+  height: 32px;
+  width: auto;
+}
+
+.footer-logo span {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  letter-spacing: 4px;
+  color: var(--text-primary);
+}
+
+.footer-text {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  max-width: 500px;
+  line-height: 1.5;
+}
+
+.footer-date {
+  font-family: var(--font-display);
+  font-size: 0.65rem;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+}
+
+/* ===== DIVIDER LINE ===== */
+.section-divider {
+  width: 60px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--cyan), var(--amber));
+  margin: 0 auto 48px;
+  border-radius: 1px;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1024px) {
+  .problem-comparison {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .problem-vs {
+    justify-self: center;
+  }
+  .timeline-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .timeline-line { display: none; }
+  .scenario-top { flex-direction: column; }
+  .scenario-punchline { max-width: 100%; }
+}
+
+@media (max-width: 768px) {
+  section { padding: 80px 20px; }
+  .nav { padding: 12px 20px; }
+  .nav-links { display: none; }
+  .nav-links.open {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: rgba(10, 10, 15, 0.95);
+    backdrop-filter: blur(20px);
+    padding: 20px;
+    border-bottom: 1px solid var(--border);
+    gap: 16px;
+  }
+  .nav-mobile-toggle { display: block; }
+  .timeline-container { grid-template-columns: 1fr; }
+  .scenario-flow {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .scenario-flow::before { display: none; }
+  .scenario-card { padding: 28px 20px; }
+  .ecosystem-grid { grid-template-columns: 1fr; }
+  .layer-card { flex-direction: column; }
+  .layer-number { width: auto; text-align: left; }
+}
+
+/* ===== REDUCED MOTION ===== */
+@media (prefers-reduced-motion: reduce) {
+  .reveal { transition: opacity 0.3s ease; transform: none !important; }
+  .reveal.visible { transform: none !important; }
+  .hero-logo { animation: none; }
+  .hero-scroll-hint { animation: none; opacity: 0.5; }
+  html { scroll-behavior: auto; }
+}
+</style>
+</head>
+<body>
+
+<!-- Particle Canvas -->
+<canvas id="particle-canvas" aria-hidden="true"></canvas>
+
+<!-- Navigation -->
+<nav class="nav" role="navigation" aria-label="Main navigation">
+  <a href="#" class="nav-logo" aria-label="HKGAI Home">
+    <img src="assets/hkgailogo.png" alt="HKGAI Logo" width="120" height="36">
+  </a>
+  <button class="nav-mobile-toggle" aria-label="Toggle navigation menu" aria-expanded="false">&#9776;</button>
+  <ul class="nav-links" role="list">
+    <li><a href="#problem">Problem</a></li>
+    <li><a href="#evolution">Evolution</a></li>
+    <li><a href="#architecture">Architecture</a></li>
+    <li><a href="#scenario">Scenario</a></li>
+    <li><a href="#demo">Demo</a></li>
+    <li><a href="#ecosystem">Ecosystem</a></li>
+  </ul>
+</nav>
+
+<!-- ===== HERO ===== -->
+<section class="hero" id="hero">
+  <img src="assets/clawnet-1024.png" alt="ClawNet Logo" class="hero-logo reveal" width="280" height="280">
+  <h1 class="reveal reveal-delay-1">ClawNet</h1>
+  <p class="hero-tagline reveal reveal-delay-2">有身份、有授權、可追責的人蝦共生網絡</p>
+  <p class="hero-tagline-en reveal reveal-delay-3">Identity &middot; Authorization &middot; Accountability &mdash; The Human-Agent Symbiosis Network</p>
+  <div class="hero-quote reveal reveal-delay-4">
+    蝦是蝦，人是人，人管蝦，蝦幫人<br>
+    <small style="color: var(--text-secondary); font-size: 0.8rem;">Lobsters are lobsters, humans are humans; humans govern lobsters, lobsters help humans.</small>
+  </div>
+  <div class="hero-scroll-hint" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+    <span>Scroll</span>
+  </div>
+</section>
+
+<!-- ===== THE PROBLEM ===== -->
+<section id="problem">
+  <div class="problem-header reveal">
+    <span class="section-label">The Paradox</span>
+    <h2 class="big-quote">AI 越聰明，人越不敢用</h2>
+    <p class="big-quote-en">AI's biggest paradox: the smarter it gets, the less people dare use it.</p>
+  </div>
+
+  <div class="problem-comparison">
+    <div class="problem-side before reveal reveal-delay-1">
+      <div class="problem-side-label">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+        Current AI Agents
+      </div>
+      <div class="problem-item">
+        <div class="problem-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><line x1="12" y1="1" x2="12" y2="4" opacity="0.4"/></svg>
+        </div>
+        <div>
+          <h4>無身份</h4>
+          <p>No Identity &mdash; Agents act anonymously with no traceable identity binding.</p>
+        </div>
+      </div>
+      <div class="problem-item">
+        <div class="problem-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><line x1="3" y1="11" x2="21" y2="22" opacity="0.3"/></svg>
+        </div>
+        <div>
+          <h4>無邊界</h4>
+          <p>No Boundaries &mdash; All-or-nothing permissions; either full access or none.</p>
+        </div>
+      </div>
+      <div class="problem-item">
+        <div class="problem-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13" opacity="0.3"/></svg>
+        </div>
+        <div>
+          <h4>無追責</h4>
+          <p>No Accountability &mdash; No audit trail; impossible to trace who authorized what.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="problem-vs reveal reveal-delay-2">
+      <span>VS</span>
+    </div>
+
+    <div class="problem-side after reveal reveal-delay-3">
+      <div class="problem-side-label">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        ClawNet Agents
+      </div>
+      <div class="problem-item">
+        <div class="problem-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><polyline points="16 3 18 5 22 1" opacity="0.8"/></svg>
+        </div>
+        <div>
+          <h4>有身份</h4>
+          <p>Identity-Bound &mdash; Each agent is bound to a specific user with verifiable credentials.</p>
+        </div>
+      </div>
+      <div class="problem-item">
+        <div class="problem-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><polyline points="10 16 12 18 14 14"/></svg>
+        </div>
+        <div>
+          <h4>有授權</h4>
+          <p>Authorized &mdash; Fine-grained permissions with clear collaboration boundaries.</p>
+        </div>
+      </div>
+      <div class="problem-item">
+        <div class="problem-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><polyline points="10 13 12 15 16 11"/></svg>
+        </div>
+        <div>
+          <h4>可追責</h4>
+          <p>Accountable &mdash; Full audit trail from human intent to agent execution.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== EVOLUTION TIMELINE ===== -->
+<section id="evolution">
+  <div class="reveal">
+    <span class="section-label">Evolution</span>
+    <h2 class="section-title">AI 助手的四代演進</h2>
+    <p class="section-subtitle">Four Generations of AI Assistants</p>
+  </div>
+
+  <div class="timeline-container">
+    <div class="timeline-line" aria-hidden="true"></div>
+
+    <div class="timeline-card reveal reveal-delay-1">
+      <div class="timeline-dot"></div>
+      <div class="timeline-gen">Gen 1</div>
+      <div class="timeline-year">2022 &ndash; 2023</div>
+      <h4>雲端對話</h4>
+      <p>Cloud Chat &mdash; Basic Q&A through cloud interfaces. Single-turn, no tool access.</p>
+    </div>
+
+    <div class="timeline-card reveal reveal-delay-2">
+      <div class="timeline-dot"></div>
+      <div class="timeline-gen">Gen 2</div>
+      <div class="timeline-year">2023 &ndash; 2024</div>
+      <h4>工具調用</h4>
+      <p>Tool Calling &mdash; LLMs gain function-calling capabilities. API integration emerges.</p>
+    </div>
+
+    <div class="timeline-card reveal reveal-delay-3">
+      <div class="timeline-dot"></div>
+      <div class="timeline-gen">Gen 3</div>
+      <div class="timeline-year">2024 &ndash; 2025</div>
+      <h4>單人 Agent</h4>
+      <p>Single-user Agent &mdash; Autonomous agents for individual users (e.g., OpenClaw).</p>
+    </div>
+
+    <div class="timeline-card active reveal reveal-delay-4">
+      <div class="timeline-dot"></div>
+      <div class="timeline-gen">Gen 4</div>
+      <div class="timeline-year">2026+</div>
+      <h4>ClawNet</h4>
+      <p>Multi-user, identity-based, governed agent network with full accountability.</p>
+      <span class="timeline-badge">Breakthrough</span>
+    </div>
+  </div>
+</section>
+
+<!-- ===== THREE-LAYER ARCHITECTURE ===== -->
+<section id="architecture">
+  <div class="reveal" style="text-align: center;">
+    <span class="section-label">Core Architecture</span>
+    <h2 class="section-title">三層能力架構</h2>
+    <p class="section-subtitle" style="margin-left: auto; margin-right: auto;">Three-Layer Capability Stack</p>
+  </div>
+
+  <div class="layers-stack">
+    <div class="layer-card reveal reveal-delay-1">
+      <div class="layer-number">01</div>
+      <div class="layer-info">
+        <h3>身份層</h3>
+        <span class="layer-en">Identity Layer</span>
+        <p>每個 Agent 綁定特定用戶，擁有明確的角色與邊界。代理不再匿名——它代表你行動，也只能在你的權限範圍內行動。</p>
+        <p style="margin-top: 8px; font-size: 0.8rem; color: var(--text-dim);">Each agent is bound to a specific user with clear roles and boundaries. Agents are no longer anonymous.</p>
+      </div>
+    </div>
+
+    <div class="layer-card reveal reveal-delay-2">
+      <div class="layer-number">02</div>
+      <div class="layer-info">
+        <h3>授權協作層</h3>
+        <span class="layer-en">Authorized Collaboration</span>
+        <p>Agent 之間可以發現彼此、在權限邊界內協作，需要時自動上報。從孤島到網絡，從單打獨鬥到團隊作戰。</p>
+        <p style="margin-top: 8px; font-size: 0.8rem; color: var(--text-dim);">Agents discover each other, collaborate within permission boundaries, and escalate when needed.</p>
+      </div>
+    </div>
+
+    <div class="layer-card reveal reveal-delay-3">
+      <div class="layer-number">03</div>
+      <div class="layer-info">
+        <h3>責任契約層</h3>
+        <span class="layer-en">Responsibility Contract</span>
+        <p>人類意圖 → Agent 執行 → 關鍵節點人類決策 → 完整審計軌跡。每一步都有記錄，每個決定都可追溯。</p>
+        <p style="margin-top: 8px; font-size: 0.8rem; color: var(--text-dim);">Human intent &rarr; Agent execution &rarr; Human decision at key nodes &rarr; Full audit trail.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SCENARIO SHOWCASE ===== -->
+<section id="scenario">
+  <div class="reveal">
+    <span class="section-label">Real-World Scenario</span>
+    <h2 class="section-title">跨境電商：老闆只說了兩句話</h2>
+    <p class="section-subtitle">Cross-border E-commerce: The boss only spoke two sentences.</p>
+  </div>
+
+  <div class="scenario-card reveal reveal-delay-1">
+    <div class="scenario-top">
+      <div class="scenario-quote">
+        <blockquote>
+          「幫我找個新供應商報價，順便讓設計出個新包裝方案。」
+        </blockquote>
+        <div class="scenario-speaker">&mdash; 老闆（Boss），跨境電商公司</div>
+      </div>
+      <div class="scenario-punchline">
+        老闆只說了兩句話，但責任鏈完整：誰發起、誰執行、誰批准、誰追蹤——全部有跡可循。<br>
+        <small style="color: var(--text-dim);">Two sentences from the boss, but the accountability chain is complete.</small>
+      </div>
+    </div>
+
+    <div class="scenario-flow">
+      <div class="flow-step reveal reveal-delay-1">
+        <div class="flow-step-num">1</div>
+        <h5>意圖</h5>
+        <p>Intent &mdash; Boss states goal via natural language</p>
+      </div>
+      <div class="flow-step reveal reveal-delay-2">
+        <div class="flow-step-num">2</div>
+        <h5>協作</h5>
+        <p>Agent Collaboration &mdash; Supplier, freight, designer agents coordinate</p>
+      </div>
+      <div class="flow-step reveal reveal-delay-3">
+        <div class="flow-step-num">3</div>
+        <h5>報告</h5>
+        <p>Report &mdash; Agents compile findings and recommendations</p>
+      </div>
+      <div class="flow-step reveal reveal-delay-4">
+        <div class="flow-step-num">4</div>
+        <h5>決策</h5>
+        <p>Human Decision &mdash; Boss reviews and approves</p>
+      </div>
+      <div class="flow-step reveal reveal-delay-5">
+        <div class="flow-step-num">5</div>
+        <h5>執行</h5>
+        <p>Execution &mdash; Authorized agents carry out approved plan</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== DEMO VIDEO ===== -->
+<section id="demo" class="demo-section">
+  <div class="reveal">
+    <span class="section-label">Live Demo</span>
+    <h2 class="section-title" style="text-align: center;">芯片採購談判演示</h2>
+    <p class="section-subtitle" style="text-align: center; margin-left: auto; margin-right: auto;">Chip Procurement Negotiation Demo</p>
+  </div>
+
+  <div class="demo-frame reveal reveal-delay-1">
+    <div class="demo-label">Live Demo: Chip Procurement Negotiation</div>
+    <video controls preload="metadata" poster="assets/clawnet-1024.png">
+      <source src="assets/demo.mp4" type="video/mp4">
+      Your browser does not support the video element.
+    </video>
+  </div>
+</section>
+
+<!-- ===== NETWORK ECOSYSTEM ===== -->
+<section id="ecosystem">
+  <div class="reveal" style="text-align: center;">
+    <span class="section-label">Ecosystem</span>
+    <h2 class="section-title">網絡生態四大特性</h2>
+    <p class="section-subtitle" style="margin-left: auto; margin-right: auto;">Four Key Properties of the ClawNet Ecosystem</p>
+  </div>
+
+  <div class="ecosystem-grid">
+    <div class="eco-card reveal reveal-delay-1">
+      <div class="eco-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="2"/><circle cx="6" cy="6" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="18" r="2"/><line x1="12" y1="10" x2="7.5" y2="7.5"/><line x1="12" y1="10" x2="16.5" y2="7.5"/><line x1="12" y1="14" x2="7.5" y2="16.5"/><line x1="12" y1="14" x2="16.5" y2="16.5"/></svg>
+      </div>
+      <h3>網絡效應</h3>
+      <span class="eco-en">Network Effect</span>
+      <p>每新增一個 Agent，整個網絡的價值指數級增長。從線性工具到指數網絡。</p>
+      <span class="eco-stat" data-target="N²" aria-label="Exponential value growth">N&sup2;</span>
+    </div>
+
+    <div class="eco-card reveal reveal-delay-2">
+      <div class="eco-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+      <h3>社會化 Agent</h3>
+      <span class="eco-en">Socialized Agents</span>
+      <p>Agent 擁有角色、層級，映射真實社會結構。不是工具，是組織成員。</p>
+      <span class="eco-stat" aria-label="Social hierarchy">ORG</span>
+    </div>
+
+    <div class="eco-card reveal reveal-delay-3">
+      <div class="eco-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      </div>
+      <h3>數據隔離</h3>
+      <span class="eco-en">Data Isolation</span>
+      <p>每個用戶擁有獨立 Agent 實例，數據完全隔離，隱私受到架構級保護。</p>
+      <span class="eco-stat" aria-label="Independent instances">1:1</span>
+    </div>
+
+    <div class="eco-card reveal reveal-delay-4">
+      <div class="eco-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+      </div>
+      <h3>人控邊界</h3>
+      <span class="eco-en">Human-Controlled Boundaries</span>
+      <p>開放但有治理。人類始終掌握邊界控制權，Agent 在授權範圍內自由協作。</p>
+      <span class="eco-stat" aria-label="Human-governed openness">GOV</span>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-logo">
+      <img src="assets/hkgailogo.png" alt="HKGAI Logo" width="100" height="30">
+      <span>ClawNet</span>
+    </div>
+    <p class="footer-text">
+      ClawNet &mdash; HKGAI's answer to responsible AI autonomy.<br>
+      從「能做事」走向「被允許做事」
+    </p>
+    <div class="footer-date">March 2026</div>
+  </div>
+</footer>
+
+<script>
+/* ===== PARTICLE NETWORK BACKGROUND ===== */
+(function() {
+  const canvas = document.getElementById('particle-canvas');
+  const ctx = canvas.getContext('2d');
+  let particles = [];
+  let animationId;
+  let width, height;
+
+  const PARTICLE_COUNT_DESKTOP = 80;
+  const PARTICLE_COUNT_MOBILE = 35;
+  const CONNECTION_DISTANCE = 150;
+  const COLORS = ['#00e5ff', '#ffb300', '#ff3d3d'];
+
+  function resize() {
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+  }
+
+  function createParticles() {
+    const count = width < 768 ? PARTICLE_COUNT_MOBILE : PARTICLE_COUNT_DESKTOP;
+    particles = [];
+    for (let i = 0; i < count; i++) {
+      particles.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: (Math.random() - 0.5) * 0.4,
+        radius: Math.random() * 2 + 1,
+        color: COLORS[Math.floor(Math.random() * COLORS.length)],
+        opacity: Math.random() * 0.5 + 0.1
+      });
+    }
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, width, height);
+
+    for (let i = 0; i < particles.length; i++) {
+      const p = particles[i];
+      p.x += p.vx;
+      p.y += p.vy;
+      if (p.x < 0 || p.x > width) p.vx *= -1;
+      if (p.y < 0 || p.y > height) p.vy *= -1;
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+      ctx.fillStyle = p.color;
+      ctx.globalAlpha = p.opacity;
+      ctx.fill();
+
+      for (let j = i + 1; j < particles.length; j++) {
+        const q = particles[j];
+        const dx = p.x - q.x;
+        const dy = p.y - q.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < CONNECTION_DISTANCE) {
+          ctx.beginPath();
+          ctx.moveTo(p.x, p.y);
+          ctx.lineTo(q.x, q.y);
+          ctx.strokeStyle = p.color;
+          ctx.globalAlpha = (1 - dist / CONNECTION_DISTANCE) * 0.15;
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+      }
+    }
+    ctx.globalAlpha = 1;
+    animationId = requestAnimationFrame(animate);
+  }
+
+  /* Respect reduced motion */
+  const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+  function handleMotion() {
+    if (motionQuery.matches) {
+      cancelAnimationFrame(animationId);
+      ctx.clearRect(0, 0, width, height);
+      /* Draw static particles only */
+      for (const p of particles) {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.opacity;
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    } else {
+      animate();
+    }
+  }
+
+  resize();
+  createParticles();
+  handleMotion();
+  motionQuery.addEventListener('change', handleMotion);
+
+  let resizeTimer;
+  window.addEventListener('resize', function() {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function() {
+      resize();
+      createParticles();
+      handleMotion();
+    }, 200);
+  });
+})();
+
+/* ===== SCROLL REVEAL ===== */
+(function() {
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+  reveals.forEach(function(el) { observer.observe(el); });
+})();
+
+/* ===== MOBILE NAV TOGGLE ===== */
+(function() {
+  const toggle = document.querySelector('.nav-mobile-toggle');
+  const links = document.querySelector('.nav-links');
+  if (!toggle || !links) return;
+
+  toggle.addEventListener('click', function() {
+    const isOpen = links.classList.toggle('open');
+    toggle.setAttribute('aria-expanded', isOpen);
+  });
+
+  links.querySelectorAll('a').forEach(function(a) {
+    a.addEventListener('click', function() {
+      links.classList.remove('open');
+      toggle.setAttribute('aria-expanded', 'false');
+    });
+  });
+})();
+
+/* ===== NAV ACTIVE STATE ON SCROLL ===== */
+(function() {
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-links a');
+
+  const observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        const id = entry.target.getAttribute('id');
+        navLinks.forEach(function(link) {
+          if (link.getAttribute('href') === '#' + id) {
+            link.style.color = 'var(--cyan)';
+          } else {
+            link.style.color = '';
+          }
+        });
+      }
+    });
+  }, { threshold: 0.3 });
+
+  sections.forEach(function(s) { observer.observe(s); });
+})();
+</script>
+</body>
+</html>
