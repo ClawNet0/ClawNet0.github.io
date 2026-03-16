@@ -97,9 +97,13 @@ section { position: relative; z-index: 1; padding: 100px 32px; max-width: 1140px
 
 /* Zone B — Author Byline */
 .hero-zone-b { display: flex; flex-direction: column; align-items: center; }
-.hero-author { font-family: var(--font-body); font-size: 1.15rem; font-weight: 500; color: #e0e0e0; margin-bottom: 5px; letter-spacing: 0.5px; }
-.hero-affil { font-family: var(--font-body); font-size: 0.82rem; color: #666; letter-spacing: 1px; margin-bottom: 22px; }
-.hero-affil .affil-sep { display: inline-block; margin: 0 8px; color: #555; }
+.hero-author { font-family: var(--font-body); font-size: 1.2rem; font-weight: 500; color: #e0e0e0; margin-bottom: 5px; letter-spacing: 0.5px; }
+.hero-author sup { font-size: 1em; color: var(--cyan); font-weight: 600; margin-left: 1px; vertical-align: super; line-height: 1; }
+.hero-affil { font-family: var(--font-body); font-size: 0.85rem; color: #666; letter-spacing: 1px; margin-bottom: 8px; }
+.hero-affil .affil-sep { display: inline-block; margin: 0 85px; color: #555; }
+.hero-notes { font-family: var(--font-body); font-size: 0.8rem; color: #888; letter-spacing: 0.3px; margin-bottom: 22px; text-align: center; line-height: 1.8; }
+.hero-notes a { color: var(--cyan); text-decoration: none; transition: opacity 0.2s; }
+.hero-notes a:hover { opacity: 0.8; text-decoration: underline; }
 .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
 .hero-btn { display: inline-flex; align-items: center; gap: 7px; padding: 9px 20px; border-radius: 100px; border: 1px solid var(--cyan-dim); background: transparent; color: var(--cyan); font-family: var(--font-body); font-size: 0.78rem; font-weight: 500; letter-spacing: 0.5px; text-decoration: none; cursor: pointer; transition: background 0.25s, color 0.25s, box-shadow 0.25s, border-color 0.25s; }
 .hero-btn:hover, .hero-btn:focus-visible { background: var(--cyan); color: var(--bg-base); border-color: var(--cyan); box-shadow: 0 0 24px var(--cyan-dim); }
@@ -365,10 +369,11 @@ html[lang="zh-Hans"] { --font-cn: 'Noto Sans SC', 'Noto Sans TC', 'Inter', sans-
   <div class="hero-divider rv rv-d3" aria-hidden="true"></div>
 
   <!-- Zone B: Author Byline -->
-  <!-- <div class="hero-zone-b rv rv-d4">
-    <div class="hero-author">Yonggang Zhang</div>
+  <div class="hero-zone-b rv rv-d4">
+    <div class="hero-author" data-i18n-html="hero_author">楊智欽<sup>*</sup>, 張振源<sup>*</sup>, 賈憲章<sup>*</sup>, 雪巍<sup>*</sup>, 張永崗<sup>&dagger;</sup>, 郭毅可<sup>&dagger;</sup></div>
     <div class="hero-affil">HKUST<span class="affil-sep">&middot;</span>HKGAI</div>
-    <div class="hero-actions">
+    <div class="hero-notes" data-i18n-html="hero_notes"><sup>*</sup> 同等貢獻 &nbsp;&nbsp;<sup>&dagger;</sup> 通訊作者：<a href="mailto:zhangyg@ust.hk">zhangyg@ust.hk</a>, <a href="mailto:yikeguo@ust.hk">yikeguo@ust.hk</a></div>
+    <!-- <div class="hero-actions">
       <a href="#whitepaper" class="hero-btn">
         <svg viewBox="0 0 24 24" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
         White Paper
@@ -381,8 +386,8 @@ html[lang="zh-Hans"] { --font-cn: 'Noto Sans SC', 'Noto Sans TC', 'Inter', sans-
         <svg viewBox="0 0 24 24" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
         Technical Report
       </a>
-    </div>
-  </div> -->
+    </div> -->
+  </div>
 
   <div class="hero-scroll" aria-hidden="true">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
@@ -926,7 +931,9 @@ html[lang="zh-Hans"] { --font-cn: 'Noto Sans SC', 'Noto Sans TC', 'Inter', sans-
       canvas_agent: '蝦 Agent',
       canvas_agent_sub: '認知代理 \u2192 自主執行',
       canvas_net: '網 Net',
-      canvas_net_sub: '互相協作 \u2192 約束治理'
+      canvas_net_sub: '互相協作 \u2192 約束治理',
+      hero_author: '楊智欽<sup>*</sup>, 張振源<sup>*</sup>, 賈憲章<sup>*</sup>, 雪巍<sup>*</sup>, 張永崗<sup>\u2020</sup>, 郭毅可<sup>\u2020</sup>',
+      hero_notes: '<sup>*</sup> 同等貢獻 \u00a0\u00a0<sup>\u2020</sup> 通訊作者：<a href="mailto:zhangyg@ust.hk">zhangyg@ust.hk</a>, <a href="mailto:yikeguo@ust.hk">yikeguo@ust.hk</a>'
     },
     'zh-CN': {
       page_title: 'ClawNet — 智能装进治理的笼子',
@@ -1031,7 +1038,9 @@ html[lang="zh-Hans"] { --font-cn: 'Noto Sans SC', 'Noto Sans TC', 'Inter', sans-
       canvas_agent: '虾 Agent',
       canvas_agent_sub: '认知代理 \u2192 自主执行',
       canvas_net: '网 Net',
-      canvas_net_sub: '互相协作 \u2192 约束治理'
+      canvas_net_sub: '互相协作 \u2192 约束治理',
+      hero_author: '杨智钦<sup>*</sup>, 张振源<sup>*</sup>, 贾宪章<sup>*</sup>, 雪巍<sup>*</sup>, 张永岗<sup>\u2020</sup>, 郭毅可<sup>\u2020</sup>',
+      hero_notes: '<sup>*</sup> 同等贡献 \u00a0\u00a0<sup>\u2020</sup> 通讯作者：<a href="mailto:zhangyg@ust.hk">zhangyg@ust.hk</a>, <a href="mailto:yikeguo@ust.hk">yikeguo@ust.hk</a>'
     },
     'en': {
       page_title: 'ClawNet \u2014 Put Intelligence Inside the Cage of Governance',
@@ -1136,7 +1145,9 @@ html[lang="zh-Hans"] { --font-cn: 'Noto Sans SC', 'Noto Sans TC', 'Inter', sans-
       canvas_agent: 'Agent',
       canvas_agent_sub: 'Cognitive Proxy \u2192 Autonomous Execution',
       canvas_net: 'Network',
-      canvas_net_sub: 'Collaboration \u2192 Governance'
+      canvas_net_sub: 'Collaboration \u2192 Governance',
+      hero_author: 'Zhiqin Yang<sup>*</sup>, Zhenyuan Zhang<sup>*</sup>, Xianzhang Jia<sup>*</sup>, Wei Xue<sup>*</sup>, Yonggang Zhang<sup>\u2020</sup>, Yike Guo<sup>\u2020</sup>',
+      hero_notes: '<sup>*</sup> Equal Contribution \u00a0\u00a0<sup>\u2020</sup> Corresponding Authors: <a href="mailto:zhangyg@ust.hk">zhangyg@ust.hk</a>, <a href="mailto:yikeguo@ust.hk">yikeguo@ust.hk</a>'
     }
   };
 
@@ -1195,6 +1206,15 @@ html[lang="zh-Hans"] { --font-cn: 'Noto Sans SC', 'Noto Sans TC', 'Inter', sans-
   var saved = localStorage.getItem('clawnet-lang');
   if (saved && T[saved]) {
     setLang(saved);
+  } else {
+    var browserLang = (navigator.language || navigator.userLanguage || '').toLowerCase();
+    var detected = 'zh-HK';
+    if (browserLang.startsWith('en')) {
+      detected = 'en';
+    } else if (browserLang === 'zh-cn' || browserLang === 'zh-hans' || browserLang.startsWith('zh-hans')) {
+      detected = 'zh-CN';
+    }
+    setLang(detected);
   }
 })();
 </script>
