@@ -243,6 +243,8 @@ section { position: relative; z-index: 1; padding: 100px 32px; max-width: 1140px
 .footer-logo span { font-family: var(--font-display); font-size: 0.9rem; letter-spacing: 4px; color: var(--text-primary); }
 .footer-org { font-family: var(--font-cn); font-size: 0.8rem; color: var(--text-secondary); }
 .footer-date { font-family: var(--font-display); font-size: 0.6rem; letter-spacing: 2px; color: var(--text-dim); }
+.footer-stats { display: flex; gap: 18px; font-family: var(--font-display); font-size: 0.55rem; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; }
+.footer-stats span { color: var(--cyan); }
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 1024px) {
@@ -655,8 +657,13 @@ html[lang="zh-Hans"] { --font-cn: 'Noto Sans SC', 'Noto Sans TC', 'Inter', sans-
     </div>
     <div class="footer-org" data-i18n-html="footer_org">HKGAI &middot; 香港生成式人工智能研發中心</div>
     <div class="footer-date">March 2026</div>
+    <div class="footer-stats">
+      <div>Visits <span id="busuanzi_value_site_pv">--</span></div>
+      <div>Visitors <span id="busuanzi_value_site_uv">--</span></div>
+    </div>
   </div>
 </footer>
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 
 <script>
 /* ===== PARTICLE NETWORK ===== */
