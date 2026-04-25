@@ -1,0 +1,8 @@
+.claude/
+.DS_Store
+
+# App build artifacts — never commit; distribute via private channel
+*.zip
+*.apk
+*.ipa
+assets/ClawNet*.zip
